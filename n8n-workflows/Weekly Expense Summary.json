@@ -1,0 +1,141 @@
+{
+  "name": "Weekly Expense Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c07fbda5-ce6b-4d60-952b-174041e35ebc",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY",
+          "mode": "list",
+          "cachedResultName": "Expense Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "13cb4912-2250-4442-a1e3-f9dd908248ae",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gxs9KOSoLOlaZOUa",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\nconst totals = {};\nlet grandTotal = 0;\n\nrows.forEach(row => {\n  const cat = row.json.Category || 'other';\n  const amt = parseFloat(row.json.Amount) || 0;\n  totals[cat] = (totals[cat] || 0) + amt;\n  grandTotal += amt;\n});\n\nlet summary = '📊 Weekly Summary\\n\\n';\nfor (const [cat, amt] of Object.entries(totals)) {\n  summary += `${cat}: ₹${amt.toFixed(0)}\\n`;\n}\nsummary += `\\nTotal: ₹${grandTotal.toFixed(0)}`;\n\nreturn [{ json: { summary } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "43d46cf6-9d34-4c7f-8d44-fdb5fdc3534f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "1427979784",
+        "text": "={{ $json.summary }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "4b040736-b277-47c4-8690-d965f6f5bf4a",
+      "name": "Send a text message",
+      "webhookId": "7177a0b4-4fa7-409f-b8fd-e1e12616b2e0",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERHkJgPzjaoD4V4t",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d4fe04f8-9d85-4952-9e2a-ed9ea39d5a9b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c5fc0f444eb95d46f8c4bb6f6849115c56411aca158ec061cb8b7de7701fc349"
+  },
+  "id": "FJjGMIV7vK2In7YB",
+  "tags": []
+}

@@ -1,0 +1,278 @@
+{
+  "name": "MyExpenseBot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "99018bd8-781c-4044-8f39-6844a6941c5a",
+      "name": "Telegram Trigger",
+      "webhookId": "4c5d4e64-cc1e-4e11-b22b-7980aa4502de",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERHkJgPzjaoD4V4t",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.message.text.toLowerCase();\n\nconst parts = text.split(' ');\n\nlet amount, category, description;\n\nif (text.includes('spent') && text.includes('on')) {\n  amount = parseFloat(parts[1]);\n  category = parts[parts.indexOf('on') + 1];\n  description = text;\n} else if (!isNaN(parts[0])) {\n  amount = parseFloat(parts[0]);\n  category = parts[1] || 'general';\n  description = text;\n} else {\n  amount = null;\n  category = null;\n  description = text;\n}\n\nconst today = new Date().toLocaleDateString('en-IN');\nconst loggedAt = new Date().toISOString();\n\nreturn [{\n  json: {\n    date: today,\n    amount: amount,\n    category: category,\n    description: description,\n    loggedAt: loggedAt,\n    valid: amount !== null && !isNaN(amount)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "311b0ec3-1bbe-4e6a-a185-ce4e6644a9e4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "44ac7cfd-0f78-450e-ac40-cd68102767f4",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "dc66a72e-cf63-4c52-a39a-c865a2015713",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY",
+          "mode": "list",
+          "cachedResultName": "Expense Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Amount": "={{ $json.amount }}",
+            "Category": "={{ $json.category }}",
+            "Description": "={{ $json.description }}",
+            "Logged At": "={{ $json.loggedAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Logged At",
+              "displayName": "Logged At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "6682042c-7afb-4883-acc2-97be7f2e25d9",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gxs9KOSoLOlaZOUa",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=✅ Logged ₹{{ $('Code in JavaScript').item.json.amount }} under {{ $('Code in JavaScript').item.json.category }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "76ab6771-3f7c-4cd7-8a48-8414f68d774f",
+      "name": "Send a text message",
+      "webhookId": "e1ae0a3c-c76c-4760-921f-ce8321a80e1a",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERHkJgPzjaoD4V4t",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ Couldn't parse that. Try: \"spent 200 on food\" or \"150 food\"",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        96
+      ],
+      "id": "43add547-1b8c-4e42-9053-9de3b7654de6",
+      "name": "Send a text message1",
+      "webhookId": "8e1c3208-9fc8-49dd-a85f-67ca6c3b4c8e",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERHkJgPzjaoD4V4t",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "75123891-9e72-4413-84a0-b4c02914f484",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c5fc0f444eb95d46f8c4bb6f6849115c56411aca158ec061cb8b7de7701fc349"
+  },
+  "id": "UqAPrJ8ITQz6MlM4",
+  "tags": []
+}
