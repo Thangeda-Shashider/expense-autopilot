@@ -3,8 +3,10 @@
 > Log expenses via Telegram. Visualise spending via a React dashboard.
 > Built with n8n · Google Sheets · PostgreSQL · Node.js · React
 
-Telegram Bot Demo ==> (screenshots/telegram-demo.png)
-Google Sheet Logging ==> (screenshots/sheets-data.png)
+Telegram Bot Demo ==> (screenshots/telegram-demo.png),
+
+Google Sheet Logging ==> (screenshots/sheets-data.png),
+
 n8n Workflow ==> (screenshots/workflow.png)
 
 ## The problem
