@@ -61,4 +61,24 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Get user by Telegram chat ID
+router.get('/by-telegram/:telegramId', async (req, res) => {
+  const { telegramId } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email FROM users WHERE telegram_chat_id = $1',
+      [telegramId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
