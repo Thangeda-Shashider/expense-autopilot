@@ -25,7 +25,7 @@ Google Sheets (Phase 1 — live now)
     ↓
 PostgreSQL + Node.js API (Phase 2 — in progress)
     ↓
-React Dashboard (Phase 3 — coming soon)
+React Dashboard (Phase 3 — live ✅)
 
 1. Send a message to Telegram bot
 2. n8n parses and validates it
@@ -37,9 +37,9 @@ React Dashboard (Phase 3 — coming soon)
 - [x] n8n parsing workflow
 - [x] Google Sheets logging
 - [x] Weekly summary automation
-- [ ] PostgreSQL schema (in progress)
-- [ ] Node.js REST API
-- [ ] React analytics dashboard
+- [x] PostgreSQL schema
+- [x] Node.js REST API
+- [x] React analytics dashboard
 
 ## Tech stack
 | Layer | Tech |
@@ -65,3 +65,31 @@ React Dashboard (Phase 3 — coming soon)
 5. Connect your Google Sheet
 6. Activate both workflows
 7. Message your bot: `spent 150 on food`
+
+## Running locally
+
+### 1 — Backend (Node.js API)
+
+```bash
+cd expense-autopilot-api
+npm install
+node index.js
+```
+
+The API will start on **http://localhost:3000**
+
+> Make sure your `.env` file inside `expense-autopilot-api/` has the correct `DATABASE_URL` and `JWT_SECRET` values before running.
+
+### 2 — Frontend (React Dashboard)
+
+Open a **second terminal window** and run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The dashboard will start on **http://localhost:5173**
+
+> Both the backend and frontend must be running at the same time for the dashboard to work.
