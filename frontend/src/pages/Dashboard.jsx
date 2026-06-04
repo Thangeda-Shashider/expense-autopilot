@@ -33,7 +33,7 @@ export default function Dashboard() {
         api.get('/api/expenses/summary'),
       ]);
       setExpenses(expRes.data?.data || expRes.data || []);
-      setSummary(sumRes.data?.data || sumRes.data || []);
+      setSummary(sumRes.data?.categories || sumRes.data?.data || sumRes.data || []);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
