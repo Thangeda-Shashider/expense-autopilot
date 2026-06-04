@@ -112,4 +112,47 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+router.post('/', authMiddleware, async (req, res) => {
+  const { amount, category_name, description, expense_date, source } = req.body;
+  const user_id = req.user.id;
+
+  try {
+    let category_id = null;
+
+    if (category_name) {
+      // Find or create category
+      const existing = await pool.query(
+        'SELECT id FROM categories WHERE user_id = $1 AND LOWER(name) = LOWER($2)',
+        [user_id, category_name]
+      );
+
+      if (existing.rows.length > 0) {
+        category_id = existing.rows[0].id;
+      } else {
+        // Create new category with emoji
+        const icons = {
+          food: '🍔', transport: '🚗', entertainment: '🎬',
+          shopping: '🛍️', health: '💊', bills: '📱',
+          education: '📚', travel: '✈️', other: '💰'
+        };
+        const icon = icons[category_name.toLowerCase()] || '💰';
+        const newCat = await pool.query(
+          'INSERT INTO categories (user_id, name, icon) VALUES ($1, $2, $3) RETURNING id',
+          [user_id, category_name, icon]
+        );
+        category_id = newCat.rows[0].id;
+      }
+    }
+
+    const result = await pool.query(
+      `INSERT INTO expenses (user_id, category_id, amount, description, expense_date, source)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [user_id, category_id, amount, description, expense_date || new Date(), source || 'manual']
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
