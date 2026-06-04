@@ -43,10 +43,12 @@ router.get('/summary', authMiddleware, async (req, res) => {
   const period = req.query.period || 'month';
   const interval = period === 'week' ? '7 days' : '30 days';
   try {
-    const result = await pool.query(
-      `SELECT c.name as category, c.icon,
-              SUM(e.amount) as total,
-              COUNT(*) as count
+    const categories = await pool.query(
+      `SELECT 
+        COALESCE(c.name, 'Uncategorized') as category,
+        COALESCE(c.icon, '💰') as icon,
+        SUM(e.amount) as total,
+        COUNT(*) as count
        FROM expenses e
        LEFT JOIN categories c ON e.category_id = c.id
        WHERE e.user_id = $1
@@ -55,7 +57,41 @@ router.get('/summary', authMiddleware, async (req, res) => {
        ORDER BY total DESC`,
       [user_id]
     );
-    res.json(result.rows);
+
+    const monthTotal = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) as total
+       FROM expenses
+       WHERE user_id = $1
+       AND expense_date >= DATE_TRUNC('month', NOW())`,
+      [user_id]
+    );
+
+    const weekTotal = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) as total
+       FROM expenses
+       WHERE user_id = $1
+       AND expense_date >= NOW() - INTERVAL '7 days'`,
+      [user_id]
+    );
+
+    const dailySpending = await pool.query(
+      `SELECT 
+        DATE(expense_date) as date,
+        SUM(amount) as total
+       FROM expenses
+       WHERE user_id = $1
+       AND expense_date >= NOW() - INTERVAL '7 days'
+       GROUP BY DATE(expense_date)
+       ORDER BY date ASC`,
+      [user_id]
+    );
+
+    res.json({
+      categories: categories.rows,
+      monthTotal: monthTotal.rows[0].total,
+      weekTotal: weekTotal.rows[0].total,
+      dailySpending: dailySpending.rows
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
