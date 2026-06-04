@@ -1,25 +1,22 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://expense-autopilot.onrender.com/',
+  baseURL: import.meta.env.VITE_API_URL || 'https://expense-autopilot-api.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor — attach JWT token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Automatically add token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-// Response interceptor — handle 401 by redirecting to login
+// If token expired redirect to login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
