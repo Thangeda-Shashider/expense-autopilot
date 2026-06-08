@@ -126,12 +126,12 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "d4fe04f8-9d85-4952-9e2a-ed9ea39d5a9b",
+  "versionId": "dfbc04a0-8d6a-42cd-8e67-fbfa012d17d7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c5fc0f444eb95d46f8c4bb6f6849115c56411aca158ec061cb8b7de7701fc349"

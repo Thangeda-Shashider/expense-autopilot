@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.3,
       "position": [
-        0,
-        0
+        -272,
+        -128
       ],
       "id": "99018bd8-781c-4044-8f39-6844a6941c5a",
       "name": "Telegram Trigger",
@@ -26,13 +26,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const text = $input.first().json.message.text.toLowerCase();\n\nconst parts = text.split(' ');\n\nlet amount, category, description;\n\nif (text.includes('spent') && text.includes('on')) {\n  amount = parseFloat(parts[1]);\n  category = parts[parts.indexOf('on') + 1];\n  description = text;\n} else if (!isNaN(parts[0])) {\n  amount = parseFloat(parts[0]);\n  category = parts[1] || 'general';\n  description = text;\n} else {\n  amount = null;\n  category = null;\n  description = text;\n}\n\nconst today = new Date().toLocaleDateString('en-IN');\nconst loggedAt = new Date().toISOString();\n\nreturn [{\n  json: {\n    date: today,\n    amount: amount,\n    category: category,\n    description: description,\n    loggedAt: loggedAt,\n    valid: amount !== null && !isNaN(amount)\n  }\n}];"
+        "jsCode": "const text = $input.first().json.message.text;\nconst chatId = $input.first().json.message.chat.id;\n\n// Handle /connect command\nif (text.startsWith('/connect')) {\n  const email = text.split(' ')[1];\n  return [{\n    json: {\n      isConnect: true,\n      email: email,\n      chatId: String(chatId),\n      valid: false,\n      amount: null,\n      category: null\n    }\n  }];\n}\n\n// Normal expense parsing\nconst lowerText = text.toLowerCase();\nconst parts = lowerText.split(' ');\nlet amount, category, description;\n\nif (lowerText.includes('spent') && lowerText.includes('on')) {\n  amount = parseFloat(parts[1]);\n  category = parts[parts.indexOf('on') + 1];\n  description = lowerText;\n} else if (!isNaN(parts[0])) {\n  amount = parseFloat(parts[0]);\n  category = parts[1] || 'general';\n  description = lowerText;\n} else {\n  amount = null;\n  category = null;\n  description = lowerText;\n}\n\nconst today = new Date().toISOString().split('T')[0];\nconst loggedAt = new Date().toISOString();\n\nreturn [{\n  json: {\n    isConnect: false,\n    date: today,\n    amount: amount,\n    category: category,\n    description: description,\n    loggedAt: loggedAt,\n    valid: amount !== null && !isNaN(amount)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        208,
-        0
+        -64,
+        -128
       ],
       "id": "311b0ec3-1bbe-4e6a-a185-ce4e6644a9e4",
       "name": "Code in JavaScript"
@@ -64,8 +64,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        416,
-        0
+        288,
+        128
       ],
       "id": "dc66a72e-cf63-4c52-a39a-c865a2015713",
       "name": "If"
@@ -152,8 +152,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        624,
-        -96
+        640,
+        48
       ],
       "id": "6682042c-7afb-4883-acc2-97be7f2e25d9",
       "name": "Append row in sheet",
@@ -167,14 +167,14 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=✅ Logged ₹{{ $('Code in JavaScript').item.json.amount }} under {{ $('Code in JavaScript').item.json.category }}",
+        "text": "=✅ Logged ₹{{ $('Code in JavaScript').item.json.amount }} under {{ $('Code in JavaScript').item.json.category }}\n\n📊 View your detailed analytics:\nhttps://expense-autopilot.vercel.app",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        832,
-        -96
+        944,
+        48
       ],
       "id": "76ab6771-3f7c-4cd7-8a48-8414f68d774f",
       "name": "Send a text message",
@@ -195,8 +195,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        624,
-        96
+        656,
+        288
       ],
       "id": "43add547-1b8c-4e42-9053-9de3b7654de6",
       "name": "Send a text message1",
@@ -207,6 +207,155 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "url": "=https://expense-autopilot-api.onrender.com/api/auth/by-telegram/{{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        752,
+        -176
+      ],
+      "id": "b061e166-6362-4192-b624-263562310159",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://expense-autopilot-api.onrender.com/api/expenses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('HTTP Request').item.json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"amount\": {{ $('Code in JavaScript').item.json.amount }},\n  \"description\": \"{{ $('Code in JavaScript').item.json.description }}\",\n  \"expense_date\": \"{{ $('Code in JavaScript').item.json.date }}\",\n  \"source\": \"telegram\",\n  \"category_name\": \"{{ $('HTTP Request3').item.json.choices[0].message.content.trim().toLowerCase() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1056,
+        -176
+      ],
+      "id": "8a45d194-89dc-46aa-9203-6348d28ebe94",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "92f56512-0970-42d1-a23a-5b8203da2c6f",
+              "leftValue": "={{ $json.isConnect }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        -128
+      ],
+      "id": "4f94ef21-dbba-44ac-bcd7-b71fba3fc569",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://expense-autopilot-api.onrender.com/api/auth/connect-telegram",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"email\": \"{{ $json.email }}\",\n  \"telegram_chat_id\": \"{{ $json.chatId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        304,
+        -384
+      ],
+      "id": "d28c486b-d794-4c3d-ad2f-bf0dde20bb4c",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "✅ Telegram connected successfully! Welcome to Expense Autopilot 🚀  You can now log expenses by messaging this bot. Try: \"spent 200 on food\"  📊 View your dashboard: https://expense-autopilot.vercel.app",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        -384
+      ],
+      "id": "f0403e69-a492-4ecf-805c-acf867c1157f",
+      "name": "Send a text message2",
+      "webhookId": "aab6c684-107c-40f9-8b45-cb99ac94d8e1",
+      "credentials": {
+        "telegramApi": {
+          "id": "ERHkJgPzjaoD4V4t",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Categorize this expense into ONE word from: food, transport, entertainment, shopping, health, bills, education, travel, other. Expense: '{{ $('Code in JavaScript').item.json.description }}'. Reply with only the category word, lowercase.\"\n    }\n  ],\n  \"max_tokens\": 10\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        -144
+      ],
+      "id": "8c4f227a-544b-49d7-8e72-660b6618229f",
+      "name": "HTTP Request3"
     }
   ],
   "pinData": {},
@@ -226,7 +375,7 @@
       "main": [
         [
           {
-            "node": "If",
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -238,6 +387,11 @@
         [
           {
             "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request3",
             "type": "main",
             "index": 0
           }
@@ -261,14 +415,65 @@
           }
         ]
       ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "75123891-9e72-4413-84a0-b4c02914f484",
+  "versionId": "b7dca72b-bf33-4738-958f-30b87b2f7154",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c5fc0f444eb95d46f8c4bb6f6849115c56411aca158ec061cb8b7de7701fc349"

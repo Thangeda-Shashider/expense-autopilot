@@ -1,0 +1,64 @@
+{
+  "name": "Keep Render Alive",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 14
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bf3e70d9-ebc9-4ed2-bd05-f50ce7ce3292",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://expense-autopilot-api.onrender.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b5c447eb-5ff7-453f-b248-c3dd17189227",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "93d87358-2e4d-458d-a54a-80d2c330c44e",
+  "meta": {
+    "instanceId": "c5fc0f444eb95d46f8c4bb6f6849115c56411aca158ec061cb8b7de7701fc349"
+  },
+  "id": "YsXDp8Kk1uvRddXi",
+  "tags": []
+}
