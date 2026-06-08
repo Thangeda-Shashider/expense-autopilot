@@ -335,7 +335,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer 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"
+              "value": "Bearer YOUR GROK API"
             },
             {
               "name": "Content-Type",
