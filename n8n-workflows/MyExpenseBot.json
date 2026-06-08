@@ -335,7 +335,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer YOUR GROK API"
+              "value": "Bearer <YOUR GROK API KEY>"
             },
             {
               "name": "Content-Type",
