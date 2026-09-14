@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DollarSign, TrendingUp, Hash, RefreshCw } from 'lucide-react';
-import { format, subDays, startOfMonth, isWithinInterval, startOfWeek } from 'date-fns';
-import api from '../api/axios';
+import { format, subDays, startOfMonth, startOfWeek } from 'date-fns';
+import { supabase } from '../lib/supabase';
 import StatCard from '../components/StatCard';
 import ExpenseTable from '../components/ExpenseTable';
 import SpendingPieChart from '../components/Charts/PieChart';
@@ -17,23 +17,32 @@ function SectionHeader({ title, subtitle }) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ session }) {
   const [expenses, setExpenses] = useState([]);
   const [summary, setSummary] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = session?.user?.user_metadata?.name || session?.user?.email || 'there';
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [expRes, sumRes] = await Promise.all([
-        api.get('/api/expenses'),
-        api.get('/api/expenses/summary'),
-      ]);
-      setExpenses(expRes.data?.data || expRes.data || []);
-      setSummary(sumRes.data?.categories || sumRes.data?.data || sumRes.data || []);
+      const { data: expData } = await supabase
+        .from('expenses')
+        .select('*, categories(name, icon)')
+        .order('expense_date', { ascending: false });
+
+      setExpenses(expData || []);
+
+      // Build summary grouping by category client-side
+      const grouped = {};
+      (expData || []).forEach(e => {
+        const cat = e.categories?.name || 'Uncategorized';
+        grouped[cat] = (grouped[cat] || 0) + parseFloat(e.amount || 0);
+      });
+      const summaryArr = Object.entries(grouped).map(([name, total]) => ({ name, total }));
+      setSummary(summaryArr);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
@@ -89,7 +98,7 @@ export default function Dashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#f1f5f9', marginBottom: '6px' }}>
-            Good {getGreeting()}, {user.name?.split(' ')[0] || 'there'}! 👋
+          Good {getGreeting()}, {userName.split(' ')[0]}! 👋
           </h1>
           <p style={{ fontSize: '14px', color: '#64748b' }}>
             {format(now, "EEEE, MMMM d, yyyy")} — Here's your financial overview.

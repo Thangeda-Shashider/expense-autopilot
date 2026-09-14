@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Loader2, Tag, Trash2 } from 'lucide-react';
-import api from '../api/axios';
+import { supabase } from '../lib/supabase';
 
 const EMOJI_OPTIONS = ['🍔', '🚗', '🛍️', '🎮', '💊', '💡', '✈️', '📚', '🏠', '💰', '🎬', '☕', '🏋️', '💅', '🐾'];
 
@@ -22,8 +22,8 @@ export default function Categories() {
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/api/categories');
-      setCategories(data?.data || data || []);
+      const { data } = await supabase.from('categories').select('id, name, icon, is_default').order('name');
+      setCategories(data || []);
     } catch (err) {
       console.error('Category fetch error:', err);
     } finally {
@@ -39,18 +39,19 @@ export default function Categories() {
     setSubmitting(true);
     setError('');
     try {
-      const { data } = await api.post('/api/categories', {
-        name: form.name.trim(),
-        icon: form.icon,
-      });
-      const newCat = data.data || data;
-      setCategories(prev => [...prev, newCat]);
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({ name: form.name.trim(), icon: form.icon })
+        .select('id, name, icon, is_default')
+        .single();
+      if (error) throw error;
+      setCategories(prev => [...prev, data]);
       setForm({ name: '', icon: '💰' });
       setShowForm(false);
       setSuccess('Category created!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create category.');
+      setError(err.message || 'Failed to create category.');
     } finally {
       setSubmitting(false);
     }

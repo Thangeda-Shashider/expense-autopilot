@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Filter, Loader2, Calendar, Tag } from 'lucide-react';
 import { format } from 'date-fns';
-import api from '../api/axios';
+import { supabase } from '../lib/supabase';
 import ExpenseTable from '../components/ExpenseTable';
 
 export default function Expenses() {
@@ -27,12 +27,12 @@ export default function Expenses() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [expRes, catRes] = await Promise.all([
-        api.get('/api/expenses'),
-        api.get('/api/categories'),
+      const [{ data: expData }, { data: catData }] = await Promise.all([
+        supabase.from('expenses').select('*, categories(name, icon)').order('expense_date', { ascending: false }),
+        supabase.from('categories').select('id, name, icon').order('name'),
       ]);
-      setExpenses(expRes.data?.data || expRes.data || []);
-      setCategories(catRes.data?.data || catRes.data || []);
+      setExpenses(expData || []);
+      setCategories(catData || []);
     } catch (err) {
       console.error('Expenses fetch error:', err);
     } finally {
@@ -54,7 +54,8 @@ export default function Expenses() {
   async function handleDelete(id) {
     if (!window.confirm('Delete this expense?')) return;
     try {
-      await api.delete(`/api/expenses/${id}`);
+      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      if (error) throw error;
       setExpenses(prev => prev.filter(e => e.id !== id));
       setSuccess('Expense deleted.');
       setTimeout(() => setSuccess(''), 3000);
@@ -73,21 +74,25 @@ export default function Expenses() {
     setSubmitting(true);
     setError('');
     try {
-      const { data } = await api.post('/api/expenses', {
-        amount: parseFloat(form.amount),
-        category_id: form.category_id || null,
-        description: form.description,
-        expense_date: form.expense_date,
-        source: form.source,
-      });
-      const newExp = data.data || data;
-      setExpenses(prev => [newExp, ...prev]);
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert({
+          amount: parseFloat(form.amount),
+          category_id: form.category_id || null,
+          description: form.description,
+          expense_date: form.expense_date,
+          source: form.source,
+        })
+        .select('*, categories(name, icon)')
+        .single();
+      if (error) throw error;
+      setExpenses(prev => [data, ...prev]);
       setShowForm(false);
       setForm({ amount: '', category_id: '', description: '', expense_date: format(new Date(), 'yyyy-MM-dd'), source: 'manual' });
       setSuccess('Expense added successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add expense.');
+      setError(err.message || 'Failed to add expense.');
     } finally {
       setSubmitting(false);
     }
