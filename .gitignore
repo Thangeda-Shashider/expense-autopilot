@@ -30,3 +30,6 @@ frontend/.env
 
 # Test files
 test.js
+
+# AI context system
+.ai/
