@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Wallet, Loader2 } from 'lucide-react';
-import api from '../api/axios';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [form, setForm] = useState({ name: '', email: '', password: '', telegram_chat_id: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,27 +22,23 @@ export default function Login() {
     setError('');
     try {
       if (mode === 'login') {
-        const { data } = await api.post('/api/auth/login', {
+        const { error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
-        localStorage.setItem('token', data.token || data.data?.token);
-        localStorage.setItem('user', JSON.stringify(data.user || data.data?.user || { email: form.email }));
+        if (error) throw error;
         navigate('/');
       } else {
-        const { data } = await api.post('/api/auth/register', {
-          name: form.name,
+        const { error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
-          telegram_chat_id: form.telegram_chat_id || null,
+          options: { data: { name: form.name } },
         });
-        localStorage.setItem('token', data.token || data.data?.token);
-        localStorage.setItem('user', JSON.stringify(data.user || data.data?.user || { name: form.name, email: form.email }));
+        if (error) throw error;
         navigate('/');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Something went wrong. Please try again.';
-      setError(msg);
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -176,19 +172,8 @@ export default function Login() {
 
             {mode === 'register' && (
               <div>
-                <label className="label">
-                  Telegram Chat ID{' '}
-                  <span style={{ color: '#64748b', fontWeight: 400 }}>(optional)</span>
-                </label>
-                <input
-                  className="input"
-                  name="telegram_chat_id"
-                  value={form.telegram_chat_id}
-                  onChange={handleChange}
-                  placeholder="e.g. 123456789"
-                />
-                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
-                  Link your Telegram account to log expenses via bot.
+                <p style={{ fontSize: '12px', color: '#64748b', padding: '10px 12px', background: 'rgba(99,102,241,0.08)', borderRadius: '8px', border: '1px solid rgba(99,102,241,0.15)' }}>
+                  After signing up, connect Telegram from Settings using a one-time link code.
                 </p>
               </div>
             )}

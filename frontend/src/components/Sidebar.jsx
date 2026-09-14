@@ -3,25 +3,26 @@ import {
   LayoutDashboard,
   Receipt,
   Tag,
+  Settings,
   LogOut,
   TrendingUp,
   Wallet,
   ChevronRight,
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/expenses', icon: Receipt, label: 'Expenses' },
   { to: '/categories', icon: Tag, label: 'Categories' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  function handleLogout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  async function handleLogout() {
+    await supabase.auth.signOut();
     navigate('/login');
   }
 
@@ -130,10 +131,7 @@ export default function Sidebar() {
           </div>
           <div style={{ overflow: 'hidden' }}>
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.name || 'User'}
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.email || ''}
+              Account
             </div>
           </div>
         </div>
