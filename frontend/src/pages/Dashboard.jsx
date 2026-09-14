@@ -28,21 +28,18 @@ export default function Dashboard({ session }) {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const { data: expData } = await supabase
-        .from('expenses')
-        .select('*, categories(name, icon)')
-        .order('expense_date', { ascending: false });
+      const [{ data: expData }, { data: summaryData }] = await Promise.all([
+        supabase
+          .from('expenses')
+          .select('*, categories(name, icon)')
+          .order('expense_date', { ascending: false }),
+        supabase
+          .from('expense_category_summary')
+          .select('name, icon, total, count'),
+      ]);
 
       setExpenses(expData || []);
-
-      // Build summary grouping by category client-side
-      const grouped = {};
-      (expData || []).forEach(e => {
-        const cat = e.categories?.name || 'Uncategorized';
-        grouped[cat] = (grouped[cat] || 0) + parseFloat(e.amount || 0);
-      });
-      const summaryArr = Object.entries(grouped).map(([name, total]) => ({ name, total }));
-      setSummary(summaryArr);
+      setSummary(summaryData || []);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
