@@ -98,8 +98,8 @@ React Dashboard (Vercel)
 - [x] React dashboard migrated to `supabase-js` (no Express dependency)
 - [x] `expense_category_summary` Postgres view with `SECURITY INVOKER`
 - [x] Frontend deployed on Vercel
-- [ ] Render Express API — pending suspension
-- [ ] Render n8n instance — pending suspension
+- [x] Render Express API — pending suspension
+- [x] Render n8n instance — pending suspension
 
 ---
 
@@ -205,4 +205,4 @@ expense-autopilot/
 
 ## 🤝 Connect
 
-Built by **Thangeda Shashidhar** — feel free to reach out or explore the live demo!
+Built by **Thangeda Shashider**
