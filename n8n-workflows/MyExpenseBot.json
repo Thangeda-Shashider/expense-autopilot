@@ -11,15 +11,15 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.3,
       "position": [
-        -272,
-        -128
+        -576,
+        192
       ],
-      "id": "99018bd8-781c-4044-8f39-6844a6941c5a",
+      "id": "3b4b32b6-8df8-4063-8214-6f6dbc6c603b",
       "name": "Telegram Trigger",
       "webhookId": "4c5d4e64-cc1e-4e11-b22b-7980aa4502de",
       "credentials": {
         "telegramApi": {
-          "id": "ERHkJgPzjaoD4V4t",
+          "id": "mKcY5iufTr5mKdnu",
           "name": "Telegram account"
         }
       }
@@ -31,10 +31,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -64,
-        -128
+        -352,
+        192
       ],
-      "id": "311b0ec3-1bbe-4e6a-a185-ce4e6644a9e4",
+      "id": "af2d0f9a-9e26-45cb-8cdd-329c723f16a1",
       "name": "Code in JavaScript"
     },
     {
@@ -64,105 +64,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        288,
-        128
+        96,
+        384
       ],
-      "id": "dc66a72e-cf63-4c52-a39a-c865a2015713",
+      "id": "8e96664a-a94a-4927-bbb0-15d732683cfa",
       "name": "If"
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY",
-          "mode": "list",
-          "cachedResultName": "Expense Tracker",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FZbqUmTvxgtJQX9H3y0Y822veG30BH-DmoCXXVI8YbY/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Date": "={{ $json.date }}",
-            "Amount": "={{ $json.amount }}",
-            "Category": "={{ $json.category }}",
-            "Description": "={{ $json.description }}",
-            "Logged At": "={{ $json.loggedAt }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Date",
-              "displayName": "Date",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Amount",
-              "displayName": "Amount",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Category",
-              "displayName": "Category",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Description",
-              "displayName": "Description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Logged At",
-              "displayName": "Logged At",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        640,
-        48
-      ],
-      "id": "6682042c-7afb-4883-acc2-97be7f2e25d9",
-      "name": "Append row in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "gxs9KOSoLOlaZOUa",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
     },
     {
       "parameters": {
@@ -173,15 +79,15 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        944,
-        48
+        368,
+        384
       ],
-      "id": "76ab6771-3f7c-4cd7-8a48-8414f68d774f",
+      "id": "b7066af6-95eb-427d-bf07-85640e30ecec",
       "name": "Send a text message",
       "webhookId": "e1ae0a3c-c76c-4760-921f-ce8321a80e1a",
       "credentials": {
         "telegramApi": {
-          "id": "ERHkJgPzjaoD4V4t",
+          "id": "mKcY5iufTr5mKdnu",
           "name": "Telegram account"
         }
       }
@@ -195,15 +101,15 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        656,
-        288
+        368,
+        608
       ],
-      "id": "43add547-1b8c-4e42-9053-9de3b7654de6",
+      "id": "3cbb523b-182c-41a4-8266-4646d8b00171",
       "name": "Send a text message1",
       "webhookId": "8e1c3208-9fc8-49dd-a85f-67ca6c3b4c8e",
       "credentials": {
         "telegramApi": {
-          "id": "ERHkJgPzjaoD4V4t",
+          "id": "mKcY5iufTr5mKdnu",
           "name": "Telegram account"
         }
       }
@@ -216,10 +122,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        752,
-        -176
+        544,
+        192
       ],
-      "id": "b061e166-6362-4192-b624-263562310159",
+      "id": "28ef4f7e-f0ee-45b0-bfce-de0b07242a58",
       "name": "HTTP Request"
     },
     {
@@ -247,10 +153,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1056,
-        -176
+        768,
+        192
       ],
-      "id": "8a45d194-89dc-46aa-9203-6348d28ebe94",
+      "id": "a7406b37-baaa-4141-bf5b-9708d8f6142c",
       "name": "HTTP Request1"
     },
     {
@@ -280,10 +186,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        144,
-        -128
+        -128,
+        192
       ],
-      "id": "4f94ef21-dbba-44ac-bcd7-b71fba3fc569",
+      "id": "5c3c003d-a6cd-42d4-81a2-2a01e59b12d1",
       "name": "If1"
     },
     {
@@ -298,10 +204,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        304,
-        -384
+        96,
+        0
       ],
-      "id": "d28c486b-d794-4c3d-ad2f-bf0dde20bb4c",
+      "id": "fc085a22-d2df-4eaa-937c-47ed5436a90d",
       "name": "HTTP Request2"
     },
     {
@@ -313,15 +219,15 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        544,
-        -384
+        320,
+        0
       ],
-      "id": "f0403e69-a492-4ecf-805c-acf867c1157f",
+      "id": "3d6cb8b6-7130-4bb9-b3b2-b4bc0c387b6d",
       "name": "Send a text message2",
       "webhookId": "aab6c684-107c-40f9-8b45-cb99ac94d8e1",
       "credentials": {
         "telegramApi": {
-          "id": "ERHkJgPzjaoD4V4t",
+          "id": "mKcY5iufTr5mKdnu",
           "name": "Telegram account"
         }
       }
@@ -335,7 +241,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer <YOUR GROK API KEY>"
+              "value": "Bearer <GROQ_API_KEY_REDACTED>"
             },
             {
               "name": "Content-Type",
@@ -351,10 +257,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        496,
-        -144
+        320,
+        192
       ],
-      "id": "8c4f227a-544b-49d7-8e72-660b6618229f",
+      "id": "79f100db-8c11-468f-9a0c-a5f1adddc720",
       "name": "HTTP Request3"
     }
   ],
@@ -386,12 +292,12 @@
       "main": [
         [
           {
-            "node": "Append row in sheet",
+            "node": "HTTP Request3",
             "type": "main",
             "index": 0
           },
           {
-            "node": "HTTP Request3",
+            "node": "Send a text message",
             "type": "main",
             "index": 0
           }
@@ -399,17 +305,6 @@
         [
           {
             "node": "Send a text message1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Append row in sheet": {
-      "main": [
-        [
-          {
-            "node": "Send a text message",
             "type": "main",
             "index": 0
           }
@@ -468,16 +363,17 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b7dca72b-bf33-4738-958f-30b87b2f7154",
+  "versionId": "2800b471-92ab-4669-a040-156c9642fc50",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "c5fc0f444eb95d46f8c4bb6f6849115c56411aca158ec061cb8b7de7701fc349"
+    "instanceId": "bc6e44d0d5f5bd2767d1318ee9a3295138db0b40d0a539e73fc4a1f797f39869"
   },
-  "id": "UqAPrJ8ITQz6MlM4",
+  "nodeGroups": [],
+  "id": "AZg27Xos1IXeKzlz",
   "tags": []
 }
