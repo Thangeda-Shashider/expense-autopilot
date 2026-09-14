@@ -1,16 +1,16 @@
 # 💸 Expense Autopilot
 
-> **Log expenses in 2 seconds via Telegram. Visualise spending with a React analytics dashboard.**  
-> An end-to-end automation project — from Telegram message to PostgreSQL to live dashboard.
+> **Log expenses in plain English via Telegram. View analytics on a React dashboard.**  
+> Built as a portfolio project — migrated from a self-hosted n8n + Express stack to a fully managed Supabase architecture.
 
 ---
 
-## 🚀 Live Deployments
+## 🚀 Live
 
 | Service | URL |
 |---------|-----|
 | 🌐 **Frontend Dashboard** | [expense-autopilot.vercel.app](https://expense-autopilot.vercel.app) |
-| ⚙️ **Backend REST API** | [expense-autopilot-api.onrender.com](https://expense-autopilot-api.onrender.com) |
+| ⚙️ **Telegram Webhook** | Supabase Edge Function (always-on, serverless) |
 
 ---
 
@@ -18,41 +18,43 @@
 
 Manually opening a finance app to log every expense kills the habit. Most people give up within a week.
 
-**Expense Autopilot solves this** — just send a Telegram message like `spent 150 on food` and it's logged, categorised, and visible on your dashboard instantly.
+**Expense Autopilot solves this** — just send `spent 150 on food` to the Telegram bot and it's logged, AI-categorised, and visible on your dashboard instantly.
 
 ---
 
 ## ✨ Features
 
 - 📲 **Telegram Bot** — log expenses in plain English, no app switching
-- 🤖 **n8n Automation** — parses, validates, and routes messages intelligently
-- 📊 **Google Sheets Logging** — real-time spreadsheet backup for every entry
-- 🗄️ **PostgreSQL Database** — structured, queryable expense storage
-- 🔌 **Node.js REST API** — secure JWT-authenticated endpoints
-- 📈 **React Dashboard** — interactive charts and analytics with Recharts
-- 📅 **Weekly Summary** — automated digest sent to Telegram every week
+- 🤖 **AI Categorisation** — Groq (LLaMA 3.1) auto-detects the category from your message
+- 🔐 **Supabase Auth** — email/password login, JWT sessions managed by Supabase
+- 🛡️ **Row Level Security** — Postgres RLS policies ensure each user only sees their own data
+- 📊 **React Dashboard** — interactive spending charts with Recharts
+- 🔗 **Telegram Linking** — connect your bot account with a one-time code from the Settings page
+- 📈 **Category Summary View** — Postgres view with `SECURITY INVOKER` enforcing RLS at query time
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture (Current)
 
 ```
-Telegram Message
+You (Telegram)
       ↓
-n8n Workflow  ──→  Google Sheets (backup log)
+Telegram Bot API
       ↓
-Node.js + Express API  (JWT Auth)
-      ↓
-PostgreSQL Database
-      ↓
-React Dashboard  (Recharts analytics)
+Supabase Edge Function  (Deno, serverless)
+      ├─ parse message  (plain JS parser)
+      ├─ categorise     (Groq API → LLaMA 3.1)
+      └─ write expense  (Supabase service-role client, bypasses RLS for bot writes)
+            ↓
+      PostgreSQL (Supabase)
+      ├─ profiles        (linked telegram_chat_id, link_code)
+      ├─ expenses        (RLS: auth.uid() = user_id)
+      ├─ categories      (RLS: auth.uid() = user_id)
+      └─ budgets         (RLS: auth.uid() = user_id)
+            ↓
+React Dashboard (Vercel)
+      └─ supabase-js client → direct DB queries, no backend needed
 ```
-
-**Flow:**
-1. You send `spent 150 on food` to the Telegram bot
-2. n8n parses the message and extracts amount, category, and date
-3. Entry is logged to Google Sheets and PostgreSQL simultaneously
-4. The React dashboard pulls from the REST API and renders charts in real time
 
 ---
 
@@ -60,27 +62,44 @@ React Dashboard  (Recharts analytics)
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Automation** | n8n | Workflow orchestration & Telegram parsing |
-| **Bot** | Telegram Bot API | User-facing interface |
-| **Backend** | Node.js + Express | REST API with JWT authentication |
-| **Database** | PostgreSQL | Persistent, relational expense storage |
-| **Frontend** | React + Recharts | Analytics dashboard & data visualisation |
-| **Sheets** | Google Sheets API | Real-time spreadsheet logging |
-| **Deployment** | Vercel + Render | CI/CD for frontend and backend |
+| **Bot Interface** | Telegram Bot API | User-facing message interface |
+| **Serverless Backend** | Supabase Edge Functions (Deno) | Webhook handler — parses, categorises, saves |
+| **AI** | Groq API (LLaMA 3.1 8B Instant) | Zero-latency expense categorisation |
+| **Database** | Supabase PostgreSQL | Persistent storage with RLS |
+| **Auth** | Supabase Auth | Email/password, JWT, session management |
+| **Frontend** | React + Vite + Recharts | Analytics dashboard |
+| **Deployment** | Vercel (frontend) + Supabase (backend) | Fully managed, no servers to maintain |
+
+---
+
+## 🔄 Migration: Why I Moved Away from n8n + Express
+
+| | Old Stack | New Stack |
+|--|-----------|-----------|
+| **Bot logic** | n8n workflow (GUI nodes) | Supabase Edge Function (code) |
+| **Storage** | Google Sheets + PostgreSQL | PostgreSQL only (via Supabase) |
+| **Auth** | Custom JWT + Express middleware | Supabase Auth (built-in) |
+| **Security** | Manual JWT validation | RLS policies in Postgres |
+| **Hosting** | Render (Express) + Render (n8n) | Supabase + Vercel |
+| **Cost** | ~$14/month (2× Render services) | Free tier (Supabase + Vercel) |
+| **Cold starts** | ~30s (Render free tier) | <200ms (Edge Functions) |
+
+**One-line interview answer:** *"I replaced a fragile no-code + Express setup with Supabase Edge Functions and RLS — eliminating two paid Render services, removing a JWT layer, and cutting cold-start latency from 30 seconds to under 200ms."*
 
 ---
 
 ## ✅ Project Status
 
-- [x] Telegram bot live & responding
-- [x] n8n parsing workflow
-- [x] Google Sheets logging
-- [x] Weekly summary automation
-- [x] PostgreSQL schema & migrations
-- [x] Node.js REST API with JWT auth
-- [x] React analytics dashboard
+- [x] Supabase Auth (email/password) live
+- [x] RLS policies on all tables (profiles, expenses, categories, budgets)
+- [x] Telegram Edge Function deployed and webhook registered
+- [x] Groq AI categorisation working
+- [x] Telegram account linking via one-time code
+- [x] React dashboard migrated to `supabase-js` (no Express dependency)
+- [x] `expense_category_summary` Postgres view with `SECURITY INVOKER`
 - [x] Frontend deployed on Vercel
-- [x] Backend API deployed on Render
+- [x] Render Express API — pending suspension
+- [x] Render n8n instance — pending suspension
 
 ---
 
@@ -89,58 +108,69 @@ React Dashboard  (Recharts analytics)
 ### Prerequisites
 
 - Node.js ≥ 18
-- PostgreSQL running locally
-- n8n account (cloud or self-hosted)
+- Supabase account (free tier works)
 - Telegram bot token from [@BotFather](https://t.me/BotFather)
-- Google Sheets API credentials connected to n8n
+- Groq API key from [console.groq.com](https://console.groq.com)
 
 ### 1 — Clone the repo
 
 ```bash
-git clone https://github.com/your-username/expense-autopilot.git
+git clone https://github.com/Thangeda-Shashider/expense-autopilot.git
 cd expense-autopilot
 ```
 
-### 2 — Backend (Node.js API)
-
-```bash
-cd expense-autopilot-api
-npm install
-```
-
-Create a `.env` file inside `expense-autopilot-api/`:
-
-```env
-DATABASE_URL=your_postgresql_connection_string
-JWT_SECRET=your_jwt_secret
-```
-
-```bash
-node index.js
-# API starts on http://localhost:3000
-```
-
-### 3 — Frontend (React Dashboard)
-
-Open a **second terminal** and run:
+### 2 — Frontend (React Dashboard)
 
 ```bash
 cd frontend
 npm install
+```
+
+Create `frontend/.env.local` (copy from `.env.local.example`):
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+```bash
 npm run dev
 # Dashboard starts on http://localhost:5173
 ```
 
-> ⚠️ Both the backend and frontend must be running simultaneously for the dashboard to work.
+### 3 — Supabase Setup
 
-### 4 — n8n Workflows
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Run migrations in order via **SQL Editor**:
+   - `supabase/migrations/001_enable_rls_policies.sql`
+   - `supabase/migrations/002_add_link_code_to_profiles.sql`
+   - `supabase/migrations/003_expense_summary_view.sql`
+   - `supabase/migrations/004_fix_view_security_invoker.sql`
 
-1. Import `/n8n-workflows/main-workflow.json` into your n8n instance
-2. Import `/n8n-workflows/weekly-summary.json` into your n8n instance
-3. Add your Telegram bot token as a credential in n8n
-4. Connect your Google Sheet
-5. Activate both workflows
-6. Message your bot: `spent 150 on food` 🎉
+### 4 — Deploy Edge Function
+
+```bash
+npm install -g supabase
+supabase login
+supabase link --project-ref <your-project-ref>
+supabase secrets set GROQ_API_KEY=<your-key>
+supabase secrets set TELEGRAM_BOT_TOKEN=<your-token>
+supabase functions deploy telegram-webhook --no-verify-jwt
+```
+
+### 5 — Register Telegram Webhook
+
+Open in your browser (replace with your values):
+
+```
+https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<project-ref>.supabase.co/functions/v1/telegram-webhook
+```
+
+You'll see `{"ok":true,"result":true,"description":"Webhook was set"}` — done!
+
+### 6 — Test it
+
+Message your bot: `spent 150 on food` 🎉
 
 ---
 
@@ -148,14 +178,26 @@ npm run dev
 
 ```
 expense-autopilot/
-├── expense-autopilot-api/    # Node.js + Express REST API
-│   ├── index.js
+├── frontend/                          # React dashboard (Vite + supabase-js)
+│   ├── src/
+│   │   ├── lib/supabase.js            # Supabase client singleton
+│   │   └── pages/
+│   │       ├── Dashboard.jsx          # Spending charts
+│   │       └── Settings.jsx          # Telegram linking UI
+│   └── .env.local.example
+├── supabase/
+│   ├── functions/
+│   │   └── telegram-webhook/
+│   │       └── index.ts              # Edge Function (plain JS, Deno runtime)
+│   ├── migrations/
+│   │   ├── 001_enable_rls_policies.sql
+│   │   ├── 002_add_link_code_to_profiles.sql
+│   │   ├── 003_expense_summary_view.sql
+│   │   └── 004_fix_view_security_invoker.sql
 │   └── .env.example
-├── frontend/                 # React dashboard (Vite)
-│   └── src/
-├── n8n-workflows/            # Exportable n8n workflow JSON files
-│   ├── main-workflow.json
-│   └── weekly-summary.json
+├── n8n-workflows/                     # ⚠️ DECOMMISSIONED — kept as reference
+│   └── MyExpenseBot.json             # Old n8n workflow export (inactive)
+├── expense-autopilot-api/            # ⚠️ DECOMMISSIONED — old Express API
 └── README.md
 ```
 
@@ -163,4 +205,4 @@ expense-autopilot/
 
 ## 🤝 Connect
 
-Built by **Thangeda Shashidhar** — feel free to reach out or explore the live demo!
+Built by **Thangeda Shashider**
